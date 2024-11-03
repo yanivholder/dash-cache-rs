@@ -14,6 +14,7 @@
 use std::{
 	fmt::{Display, Formatter},
 	hash::Hash,
+	time::Instant,
 };
 
 #[derive(Debug, Clone)]
@@ -25,6 +26,7 @@ where
 	pub key: K,
 	pub value: V,
 	pub lfu_counter: usize,
+	pub timestamp: Instant,
 }
 
 impl<K, V> Item<K, V>
@@ -37,6 +39,7 @@ where
 			key,
 			value,
 			lfu_counter: 0,
+			timestamp: Instant::now(),
 		}
 	}
 }

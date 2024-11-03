@@ -142,9 +142,4 @@ where
 		self.items.push(item);
 		self.items.last().unwrap()
 	}
-
-	fn evict_lru_item(&mut self) -> Option<Item<K, V>> {
-		// TODO: this is in O(n). there could be a more performant way to do that
-		Some(self.items.remove(0))
-	}
 }

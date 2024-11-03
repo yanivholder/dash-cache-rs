@@ -69,7 +69,7 @@ where
 	fn get_from_position(&mut self, position: usize) -> &Item<K, V> {
 		match self.get_eviction_policy() {
 			EvictionPolicy::Fifo | EvictionPolicy::Lifo => &self.get_items()[position],
-			EvictionPolicy::Lru => self.get_and_update_lru_item(position),
+			EvictionPolicy::ClassicLRU => self.get_and_update_lru_item(position),
 			EvictionPolicy::Lfu => {
 				self.get_items_mut()[position].lfu_counter += 1;
 				&self.get_items()[position]
@@ -88,7 +88,19 @@ where
 		}
 
 		match self.get_eviction_policy() {
-			EvictionPolicy::Lru => self.evict_lru_item(),
+			EvictionPolicy::ClassicLRU => {
+				// TODO: this is in O(n). there could be a more performant way to do that
+				Some(self.get_items_mut().remove(0))
+			}
+			EvictionPolicy::TimestampLRU => {
+				let (min_timestamp_index, _) = self
+					.get_items()
+					.iter()
+					.enumerate()
+					.min_by_key(|(_, item)| item.timestamp.elapsed())
+					.unwrap();
+				Some(self.get_items_mut().remove(min_timestamp_index))
+			}
 			EvictionPolicy::Fifo => {
 				// TODO: this is in O(n). there could be a more performant way to do that
 				Some(self.get_items_mut().remove(0))
@@ -105,9 +117,6 @@ where
 			}
 		}
 	}
-
-	/// Evicts an item from the bucket according to the LRU eviction policy and return it.
-	fn evict_lru_item(&mut self) -> Option<Item<K, V>>;
 
 	/// Returns whether the bucket is full.
 	fn is_full(&self) -> bool {
