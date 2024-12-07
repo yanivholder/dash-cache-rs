@@ -1,40 +1,37 @@
+use super::associative_cache_settings::AssociativeCacheSettings;
 use crate::eviction_policy::EvictionPolicy;
 use crate::shared::item::Item;
 use crate::shared::traits::bucket::Bucket;
-use std::{
-	fmt::{Debug, Display, Formatter},
-	hash::Hash,
-};
+
+use std::fmt::{Debug, Display, Formatter};
+use std::hash::Hash;
 
 #[derive(Debug)]
-pub struct DashBucket<K, V>
+pub struct AssociativeCacheBucket<K, V>
 where
 	K: Hash + Eq + Copy + Debug,
 	V: Eq + Copy + Debug,
 {
-	// TODO: consider using a linked list for O(1) changes
 	items: Vec<Item<K, V>>,
 	max_size: usize,
-	// TODO: make this a reference with a lifetime
 	eviction_policy: EvictionPolicy,
 }
 
-impl<K, V> DashBucket<K, V>
+impl<K, V> AssociativeCacheBucket<K, V>
 where
 	K: Hash + Eq + Copy + Debug,
 	V: Eq + Copy + Debug,
 {
-	pub fn new(max_size: usize, eviction_policy: EvictionPolicy) -> Self {
-		DashBucket {
-			// TODO: consider creating a vector with a fixed size for better performance after initialization
+	pub fn new(settings: AssociativeCacheSettings) -> Self {
+		Self {
 			items: Vec::new(),
-			max_size,
-			eviction_policy,
+			max_size: settings.bucket_size,
+			eviction_policy: settings.eviction_policy,
 		}
 	}
 }
 
-impl<K, V> Bucket<K, V> for DashBucket<K, V>
+impl<K, V> Bucket<K, V> for AssociativeCacheBucket<K, V>
 where
 	K: Hash + Eq + Copy + Debug,
 	V: Eq + Copy + Debug,
@@ -56,7 +53,7 @@ where
 	}
 }
 
-impl<K, V> Display for DashBucket<K, V>
+impl<K, V> Display for AssociativeCacheBucket<K, V>
 where
 	K: Hash + Eq + Copy + Debug + Display,
 	V: Eq + Copy + Debug + Display,
@@ -68,10 +65,3 @@ where
 		Ok(())
 	}
 }
-
-// TODO: implement
-/*
-#[cfg(test)]
-mod tests {
-}
-*/
